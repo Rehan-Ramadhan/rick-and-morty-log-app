@@ -5,6 +5,14 @@ import '../services/auth_service.dart';
 
 enum AuthStatus { unknown, authenticated, unauthenticated }
 
+/// Outcome of validating the locally stored Sanctum token on app startup.
+enum SessionCheckResult {
+  authenticated,
+  noToken,
+  invalidToken,
+  networkError,
+}
+
 /// Application-wide authentication state provider backed by Sanctum tokens.
 class AuthProvider extends ChangeNotifier {
   AuthProvider({AuthService? authService, ApiService? apiService})
@@ -34,33 +42,53 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  /// Validates saved SharedPreferences token against GET /user.
-  Future<bool> checkAuthStatus() async {
+  /// Checks SharedPreferences for a saved token and validates it against GET /user.
+  Future<SessionCheckResult> verifySession() async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
       final token = await _apiService.getToken();
-      if (token == null || token.isEmpty) {
+      if (token == null || token.trim().isEmpty) {
         _user = null;
         _status = AuthStatus.unauthenticated;
-        return false;
+        return SessionCheckResult.noToken;
       }
 
       final currentUser = await _authService.fetchCurrentUser();
       _user = currentUser;
       _status = AuthStatus.authenticated;
-      return true;
-    } catch (_) {
-      await _apiService.clearToken();
+      return SessionCheckResult.authenticated;
+    } on ApiException catch (e) {
+      if (e.statusCode == 401 || e.statusCode == 403) {
+        await _apiService.clearToken();
+        _user = null;
+        _status = AuthStatus.unauthenticated;
+        _errorMessage =
+            'Your session has expired or is invalid. Please sign in again.';
+        return SessionCheckResult.invalidToken;
+      }
+
       _user = null;
-      _status = AuthStatus.unauthenticated;
-      return false;
+      _status = AuthStatus.unknown;
+      _errorMessage = e.message;
+      return SessionCheckResult.networkError;
+    } catch (e) {
+      _user = null;
+      _status = AuthStatus.unknown;
+      _errorMessage = e.toString();
+      return SessionCheckResult.networkError;
     } finally {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  /// Convenience boolean wrapper around [verifySession].
+  Future<bool> checkAuthStatus() async {
+    final result = await verifySession();
+    return result == SessionCheckResult.authenticated;
   }
 
   Future<bool> login({

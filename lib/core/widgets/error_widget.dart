@@ -26,59 +26,61 @@ class AppErrorWidget extends StatelessWidget {
     final accent = isEmptyState ? AppColors.cyan : AppColors.error;
 
     return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 420),
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: AppColors.surface.withValues(alpha: 0.9),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: accent.withValues(alpha: 0.35)),
-            boxShadow: [
-              BoxShadow(
-                color: accent.withValues(alpha: 0.08),
-                blurRadius: 24,
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: accent.withValues(alpha: 0.14),
-                  border: Border.all(color: accent.withValues(alpha: 0.45)),
-                ),
-                child: Icon(icon, color: accent, size: 30),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                message,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-              if (onRetry != null) ...[
-                const SizedBox(height: 20),
-                AppButton(
-                  label: retryLabel,
-                  icon: Icons.refresh_rounded,
-                  onPressed: onRetry,
-                  isFullWidth: false,
-                  variant: isEmptyState
-                      ? AppButtonVariant.secondary
-                      : AppButtonVariant.primary,
+      child: SingleChildScrollView(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 420),
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: AppColors.surface.withValues(alpha: 0.9),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: accent.withValues(alpha: 0.35)),
+              boxShadow: [
+                BoxShadow(
+                  color: accent.withValues(alpha: 0.08),
+                  blurRadius: 24,
                 ),
               ],
-            ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: accent.withValues(alpha: 0.14),
+                    border: Border.all(color: accent.withValues(alpha: 0.45)),
+                  ),
+                  child: Icon(icon, color: accent, size: 30),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  message,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                if (onRetry != null) ...[
+                  const SizedBox(height: 20),
+                  AppButton(
+                    label: retryLabel,
+                    icon: Icons.refresh_rounded,
+                    onPressed: onRetry,
+                    isFullWidth: false,
+                    variant: isEmptyState
+                        ? AppButtonVariant.secondary
+                        : AppButtonVariant.primary,
+                  ),
+                ],
+              ],
+            ),
           ),
         ),
       ),
